@@ -5,7 +5,7 @@ A modern Next.js web application for exploring personalized loan products with a
 ## Features
 
 - **Personalized Dashboard**: View your top 5 loan product matches with the best match highlighted
-- **Dynamic Badges**: Smart badge system that highlights key product features
+- **Dynamic Badges**: Smart badge system that highlights key product features (3-5 badges per product)
 - **Product Filtering**: Browse all loan products with filters for bank, APR range, minimum income, and credit score
 - **AI Chat Assistant**: Ask questions about any loan product with grounded, product-specific answers
 - **Secure Authentication**: Email/password authentication with Supabase
@@ -14,168 +14,502 @@ A modern Next.js web application for exploring personalized loan products with a
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript (strict mode)
+- **Language**: TypeScript (strict mode, no `any` types)
 - **UI Components**: shadcn/ui
 - **Styling**: Tailwind CSS v4
 - **Database**: PostgreSQL (via Supabase)
-- **Authentication**: Supabase Auth
+- **Authentication**: Supabase Auth with JWT
 - **Validation**: Zod
-- **AI**: Vercel AI SDK with OpenAI GPT-4
+- **AI**: Google Gemini 2.5 Flash (via REST API)
 - **Deployment**: Vercel
 
-## Architecture
+## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────┐
-│          Next.js Frontend                   │
-├─────────────────────────────────────────────┤
-│ • Dashboard (Top 5 Products)                │
-│ • All Products Page (Filterable)            │
-│ • AI Chat Drawer Component                  │
-│ • Auth Pages (Login/Signup)                 │
-├─────────────────────────────────────────────┤
-│          API Routes                         │
-├─────────────────────────────────────────────┤
-│ • POST /api/ai/ask (Product Q&A)            │
-├─────────────────────────────────────────────┤
-│          Data Layer                         │
-├─────────────────────────────────────────────┤
-│ • Products Table (loan product catalog)     │
-│ • Users Table (user profiles)               │
-│ • AI Chat Messages (conversation history)   │
-├─────────────────────────────────────────────┤
-│          Supabase (PostgreSQL + Auth)       │
-└─────────────────────────────────────────────┘
-```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  Dashboard   │  │ All Products │  │   AI Chat Drawer     │   │
+│  │  (Top 5)    │  │   (Filter)   │  │   (Product Context)  │   │
+│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
+│         │                  │                     │                │
+│         └──────────────────┼─────────────────────┘                │
+│                            │                                      │
+│                    ┌───────▼────────┐                             │
+│                    │  Navigation    │                             │
+│                    └───────┬────────┘                             │
+└────────────────────────────┼────────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────────┐
+│                      Next.js App Router                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────┐         ┌──────────────────┐              │
+│  │  Server Pages    │         │   API Routes      │              │
+│  │  • / (Dashboard) │         │   • /api/products│              │
+│  │  • /products     │         │   • /api/ai/ask   │              │
+│  │  • /auth/*       │         └─────────┬─────────┘              │
+│  └──────────────────┘                 │                         │
+└────────────────────────────────────────┼─────────────────────────┘
+                                         │
+┌────────────────────────────────────────▼─────────────────────────┐
+│                      API Layer                                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  GET /api/products                                       │   │
+│  │  • Zod validation for query params                      │   │
+│  │  • Filters: bank, APR, income, credit score, type       │   │
+│  │  • Returns filtered product list                        │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  POST /api/ai/ask                                        │   │
+│  │  • Zod validation for request body                       │   │
+│  │  • Fetches product details from database                │   │
+│  │  • Builds system prompt with product context             │   │
+│  │  • Calls Google Gemini API with grounded data           │   │
+│  │  • Returns AI response                                   │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                                         │
+┌────────────────────────────────────────▼─────────────────────────┐
+│                    Data & External Services                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────────┐      ┌──────────────────────┐          │
+│  │   Supabase/Postgres  │      │   Google Gemini AI   │          │
+│  │                      │      │                      │          │
+│  │  • products table    │      │  • gemini-2.5-flash │          │
+│  │  • users table       │      │  • REST API v1       │          │
+│  │  • ai_chat_messages  │      │  • Product-grounded │          │
+│  │  • RLS policies      │      │    responses         │          │
+│  └──────────────────────┘      └──────────────────────┘          │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Authentication (Supabase Auth)                         │   │
+│  │  • JWT-based sessions                                    │   │
+│  │  • Email/password                                        │   │
+│  │  • Middleware protection                                 │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 
-## Badge Logic
-
-The dashboard automatically displays 3-5 dynamic badges for each product based on attributes:
-
-- **Low APR**: Applied when APR ≤ 7%
-- **No Prepayment Penalty**: Applied when prepayment is allowed
-- **Fast Disbursal**: Applied for fast disbursal speed
-- **Flexible Tenure**: Applied when tenure range ≥ 50 months
-- **Low Docs**: Applied for minimal documentation requirements
-- **Zero Processing Fee**: Applied when processing fee is 0%
-- **Salary Eligible**: Applied when min income ≤ ₹4L
-- **Credit Score**: Applied when min credit score ≤ 700
-
-## AI Grounding Strategy
-
-The AI chat assistant uses a strict grounding approach:
-
-1. **Product Context**: When a user asks about a product, the system fetches complete product details (name, bank, rates, eligibility, FAQs, etc.)
-2. **System Prompt**: The AI receives a detailed system prompt that includes all product information and instructions to only answer based on this data
-3. **Message History**: Conversation history is maintained to provide context for follow-up questions
-4. **Fail-Safe**: If a question is outside the product scope, the AI politely redirects the user
-
-Example AI Request:
-```
-POST /api/ai/ask
-{
-  "productId": "uuid-here",
-  "message": "What's the minimum credit score?",
-  "history": [
-    { "role": "user", "content": "..." },
-    { "role": "assistant", "content": "..." }
-  ]
-}
+Data Flow:
+1. User requests dashboard → Server fetches top 5 products from DB
+2. User clicks "Ask About Product" → Opens chat drawer
+3. User sends message → POST /api/ai/ask
+4. API fetches product details → Builds context prompt
+5. API calls Google Gemini → Returns grounded response
+6. Response displayed in chat drawer
 ```
 
 ## Setup Instructions
 
 ### Prerequisites
-- Node.js 18+
-- Supabase account
-- OpenAI API key (for AI features)
 
-### 1. Clone and Install
+- **Node.js**: Version 18 or higher
+- **npm** or **pnpm**: Package manager
+- **Supabase Account**: Free account at [supabase.com](https://supabase.com)
+- **Google AI Studio API Key**: Get free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+### Step 1: Clone the Repository
+
 ```bash
-git clone <your-repo>
-cd loan-dashboard
-npm install
+git clone <your-repository-url>
+cd loan-product-dashboard
 ```
 
-### 2. Set Up Supabase
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Get your project URL and anon key
-3. In v0, connect your Supabase integration
+### Step 2: Install Dependencies
 
-### 3. Run Database Scripts
-Execute the SQL scripts in order:
-1. `scripts/001_create_schema.sql` - Creates tables and RLS policies
-2. `scripts/002_seed_products.sql` - Seeds 12 loan products
+```bash
+npm install
+# or
+pnpm install
+```
 
-### 4. Environment Variables
-Set in your Vercel project:
-- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
-- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
-- `POSTGRES_URL` - PostgreSQL connection string
-- `OPENAI_API_KEY` - For AI chat features
+### Step 3: Set Up Supabase
 
-### 5. Run Locally
+1. **Create a Supabase Project**:
+   - Go to [supabase.com](https://supabase.com)
+   - Click "New Project"
+   - Fill in project details and wait for setup to complete
+
+2. **Get Your Credentials**:
+   - Go to Project Settings → API
+   - Copy your `Project URL` and `anon public` key
+   - Go to Project Settings → Database
+   - Copy your `Connection string` (optional, for direct PostgreSQL access)
+
+3. **Run Database Migrations**:
+   - In Supabase Dashboard, go to SQL Editor
+   - Run `scripts/001_create_schema.sql` to create tables and RLS policies
+   - Run `scripts/002_seed_products.sql` to seed 12 sample loan products
+
+### Step 4: Get Google AI Studio API Key
+
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the API key (starts with `AIza...`)
+
+### Step 5: Configure Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# Google AI API Key (for AI chat features)
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key_here
+
+# Optional: Direct PostgreSQL connection
+POSTGRES_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+
+# Next.js
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+**Important**: Never commit `.env.local` to version control. It's already in `.gitignore`.
+
+### Step 6: Run the Development Server
+
 ```bash
 npm run dev
+# or
+pnpm dev
 ```
 
-Visit `http://localhost:3000` to see the dashboard.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 6. Deploy to Vercel
-```bash
-vercel deploy
+### Step 7: Deploy to Vercel
+
+1. **Push to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
+
+2. **Deploy to Vercel**:
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Add environment variables in Vercel dashboard:
+     - `NEXT_PUBLIC_SUPABASE_URL`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - `SUPABASE_SERVICE_ROLE_KEY`
+     - `GOOGLE_GENERATIVE_AI_API_KEY`
+   - Click "Deploy"
+
+3. **Verify Deployment**:
+   - Visit your Vercel deployment URL
+   - Test the dashboard and AI chat functionality
+
+## Badge Logic
+
+The application automatically displays **3-5 dynamic badges** for each loan product card based on product attributes. Badges are calculated in `lib/utils/badge-logic.ts`.
+
+### Badge Rules
+
+| Badge | Condition | Priority |
+|-------|-----------|----------|
+| **Low APR** | `rate_apr ≤ 7%` | High |
+| **No Prepayment Penalty** | `prepayment_allowed === true` | High |
+| **Fast Disbursal** | `disbursal_speed === "fast"` | Medium |
+| **Flexible Tenure** | `(tenure_max_months - tenure_min_months) ≥ 50` | Medium |
+| **Low Docs** | `docs_level === "minimal"` | Medium |
+| **Zero Processing Fee** | `processing_fee_pct === 0` | High |
+| **Salary Eligible** | `min_income ≤ ₹400,000` | Low |
+| **Credit Score** | `min_credit_score ≤ 700` | Low |
+
+### Implementation
+
+```typescript
+export function getBadges(product: LoanProduct): string[] {
+  const badges: string[] = []
+  
+  if (product.rate_apr <= 7) badges.push("Low APR")
+  if (product.prepayment_allowed) badges.push("No Prepayment Penalty")
+  if (product.disbursal_speed === "fast") badges.push("Fast Disbursal")
+  // ... more conditions
+  
+  return badges.slice(0, 5) // Maximum 5 badges per product
+}
 ```
+
+### Badge Display
+
+- Badges appear below the product metrics
+- Displayed as secondary variant badges
+- Automatically wraps on smaller screens
+- Maximum of 5 badges shown per product
+
+## AI Grounding Strategy
+
+The AI chat assistant uses a **strict grounding approach** to ensure all responses are based solely on the selected loan product's data.
+
+### 1. Product Context Fetching
+
+When a user clicks "Ask About Product", the system:
+
+```typescript
+// Fetches complete product details from database
+const product = await supabase
+  .from("products")
+  .select("*")
+  .eq("id", productId)
+  .single()
+```
+
+### 2. System Prompt Construction
+
+The system builds a comprehensive prompt including:
+
+- **Product Information**: Name, bank, type, APR, income requirements, credit score, tenure
+- **Financial Details**: Processing fee, prepayment policy, disbursal speed
+- **Documentation**: Documentation level, summary
+- **FAQs**: Pre-defined questions and answers from the database
+- **Guidelines**: Strict instructions to only answer based on provided data
+
+```typescript
+const systemPrompt = `You are a helpful loan product assistant. 
+You have access to detailed information about a specific loan product 
+and should only answer questions based on this product data.
+
+Product Information:
+- Name: ${product.name}
+- Bank: ${product.bank}
+- APR Rate: ${product.rate_apr}%
+- Minimum Income: ₹${product.min_income}
+- Minimum Credit Score: ${product.min_credit_score}
+// ... more fields
+
+Guidelines:
+1. Only answer questions related to this loan product
+2. Provide specific facts from the product information provided
+3. If a question is outside the scope, politely redirect the user
+4. Be helpful, professional, and concise
+5. Always cite specific product features when relevant`
+```
+
+### 3. Message History Management
+
+- Conversation history is maintained in the chat drawer
+- Each message includes role (`user` or `assistant`) and content
+- History is sent with each API request for context
+- Allows for follow-up questions and natural conversation flow
+
+### 4. API Request Flow
+
+```typescript
+POST /api/ai/ask
+{
+  "productId": "uuid",
+  "message": "What is the minimum credit score?",
+  "history": [
+    { "role": "user", "content": "Tell me about this loan" },
+    { "role": "assistant", "content": "This is a personal loan..." }
+  ]
+}
+```
+
+### 5. Google Gemini Integration
+
+- **Model**: `gemini-2.5-flash` (optimized for Google AI Studio)
+- **API Version**: v1 (stable REST API)
+- **Method**: Direct REST API calls (not SDK) for better control
+- **Fallback**: Tries multiple models if primary fails
+
+### 6. Fail-Safe Mechanism
+
+If a question is outside the product scope:
+
+1. The system prompt explicitly instructs the AI to redirect
+2. The AI responds with: *"I can only answer questions about [Product Name]. Could you ask something specific about this loan product?"*
+3. Error handling catches API failures and displays user-friendly messages
+
+### 7. Response Validation
+
+- All responses are validated before display
+- Error states are handled gracefully
+- Loading states provide user feedback
+- Conversation history is preserved on errors
 
 ## Usage
 
 ### Dashboard
+
 1. Navigate to `/` to see your top 5 personalized loan matches
-2. The "Best Match" card is highlighted and shows your top recommendation
-3. Click "Ask About Product" on any card to open the AI chat
+2. The **"Best Match"** card is highlighted with a green border and badge
+3. Click **"Ask About Product"** on any card to open the AI chat
+4. Browse product details: APR, processing fee, credit score, tenure
 
 ### All Products
+
 1. Go to `/products` to browse all available loan products
-2. Use filters to narrow down options:
-   - Search by bank name
-   - Filter by APR range
-   - Set minimum income requirement
-   - Set minimum credit score
+2. Use the sidebar filters:
+   - **Search Bank**: Type bank name to filter
+   - **APR Range**: Drag slider to set min/max APR
+   - **Min Income**: Set minimum income requirement
+   - **Min Credit Score**: Set minimum credit score
+3. Click **"Reset Filters"** to clear all filters
+4. Click **"Ask About Product"** on any product card
 
 ### AI Chat
-1. Click "Ask About Product" from any loan card
-2. A chat drawer opens on the right side (bottom on mobile)
-3. Ask any question about the loan product
-4. The AI provides answers based solely on that product's data
+
+1. Click **"Ask About Product"** from any loan card
+2. A chat drawer opens on the right side (full screen on mobile)
+3. The drawer shows:
+   - Product name, bank, and type
+   - Key metrics (APR, credit score)
+   - Chat interface
+4. Ask questions like:
+   - "What is the minimum credit score?"
+   - "Can I prepay this loan?"
+   - "What documents do I need?"
+   - "What is the processing fee?"
+5. The AI provides answers based solely on that product's data
+6. Click the X button (top right) to close the chat
 
 ### Authentication
-- Sign up with email and password
-- Verify email address via confirmation link
-- Log in to access personalized features
-- Optional: Add authentication middleware to protect routes
+
+- **Sign Up**: Navigate to `/auth/signup`
+- **Sign In**: Navigate to `/auth/login`
+- **Email Verification**: Check your email for verification link
+- **Session Management**: Automatic via Supabase middleware
+
+## API Routes
+
+### GET /api/products
+
+Fetch all loan products with optional filters.
+
+**Query Parameters:**
+- `bank` (string, optional): Filter by bank name (case-insensitive partial match)
+- `minApr` (number, optional): Minimum APR rate
+- `maxApr` (number, optional): Maximum APR rate
+- `minIncome` (number, optional): Maximum minimum income (products with min_income <= value)
+- `minCreditScore` (number, optional): Maximum minimum credit score (products with min_credit_score <= value)
+- `type` (enum, optional): Filter by loan type (`personal`, `education`, `vehicle`, `home`, `credit_line`, `debt_consolidation`)
+- `limit` (number, optional): Maximum number of results (1-100, default: all)
+
+**Example:**
+```bash
+GET /api/products?minApr=6&maxApr=8&minIncome=500000&limit=10
+```
+
+**Response:**
+```json
+{
+  "products": [
+    {
+      "id": "uuid",
+      "name": "Quick Personal Loan",
+      "bank": "HDFC Bank",
+      "type": "personal",
+      "rate_apr": 7.5,
+      "min_income": 300000,
+      "min_credit_score": 650,
+      "tenure_min_months": 6,
+      "tenure_max_months": 60,
+      "processing_fee_pct": 0.5,
+      "prepayment_allowed": true,
+      "disbursal_speed": "fast",
+      "docs_level": "minimal",
+      "summary": "Quick approval personal loan...",
+      "faq": [{"q": "...", "a": "..."}]
+    }
+  ]
+}
+```
+
+### POST /api/ai/ask
+
+Ask questions about a specific loan product using AI.
+
+**Request Body:**
+```json
+{
+  "productId": "uuid",
+  "message": "What is the minimum credit score?",
+  "history": [
+    { "role": "user", "content": "Tell me about this loan" },
+    { "role": "assistant", "content": "This is a personal loan..." }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "message": "The minimum credit score for this product is 650."
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "Product not found"
+}
+```
 
 ## Data Model
 
 ### Products Table
+
 ```sql
-id (UUID) - Primary key
-name (TEXT) - Product name
-bank (TEXT) - Bank/lender name
-type (TEXT) - Loan type enum
-rate_apr (NUMERIC) - Annual percentage rate
-min_income (NUMERIC) - Minimum income requirement
-min_credit_score (INT) - Minimum credit score
-tenure_min_months (INT) - Minimum loan tenure
-tenure_max_months (INT) - Maximum loan tenure
-processing_fee_pct (NUMERIC) - Processing fee percentage
-prepayment_allowed (BOOLEAN) - Prepayment penalty status
-disbursal_speed (TEXT) - 'fast' or 'standard'
-docs_level (TEXT) - 'minimal', 'standard', or 'detailed'
-summary (TEXT) - Product description
-faq (JSONB) - Array of {q, a} objects
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  bank TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN 
+    ('personal','education','vehicle','home','credit_line','debt_consolidation')),
+  rate_apr NUMERIC NOT NULL,
+  min_income NUMERIC NOT NULL,
+  min_credit_score INT NOT NULL,
+  tenure_min_months INT DEFAULT 6,
+  tenure_max_months INT DEFAULT 60,
+  processing_fee_pct NUMERIC DEFAULT 0,
+  prepayment_allowed BOOLEAN DEFAULT TRUE,
+  disbursal_speed TEXT DEFAULT 'standard',
+  docs_level TEXT DEFAULT 'standard',
+  summary TEXT,
+  faq JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Users Table
+
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  display_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### AI Chat Messages Table
+
+```sql
+CREATE TABLE ai_chat_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 ```
 
 ### RLS Policies
+
 - **Products**: Public read access (everyone can view)
 - **Users**: Users can only access their own data
 - **Chat Messages**: Users can only access their own messages
@@ -183,24 +517,52 @@ faq (JSONB) - Array of {q, a} objects
 ## Performance Optimizations
 
 1. **Server Components**: Dashboard uses server components for initial data fetch
-2. **Caching**: Products are cached at the edge
-3. **Lazy Chat Loading**: Chat component loads only when "Ask" is clicked
-4. **Indexed Queries**: Database indexes on frequently filtered columns
+2. **Edge Caching**: Products are cached at the edge via Next.js
+3. **Lazy Loading**: Chat component loads only when "Ask" is clicked
+4. **Database Indexes**: Indexes on frequently filtered columns (type, bank, rate_apr)
+5. **Optimized Queries**: Efficient filtering and pagination
 
 ## Future Enhancements
 
 - User preference profiles to improve personalization
-- Loan comparison tool side-by-side
+- Loan comparison tool (side-by-side comparison)
 - Application tracking for submitted loans
-- Loan calculator
+- Loan calculator (EMI, interest calculations)
 - Email notifications for rate changes
 - Admin dashboard for product management
 - Social proof (customer reviews/ratings)
+- Advanced filtering (loan amount, purpose)
+- Saved searches and favorites
+
+## Troubleshooting
+
+### Chat Not Working
+
+1. Check `GOOGLE_GENERATIVE_AI_API_KEY` is set in `.env.local`
+2. Verify API key is valid in Google AI Studio
+3. Check browser console for errors
+4. Ensure product data exists in database
+
+### Database Connection Issues
+
+1. Verify Supabase credentials in `.env.local`
+2. Check Supabase project is active
+3. Ensure RLS policies are set correctly
+4. Run database migrations again
+
+### Build Errors
+
+1. Clear `.next` folder: `rm -rf .next`
+2. Reinstall dependencies: `rm -rf node_modules && npm install`
+3. Check TypeScript errors: `npm run lint`
 
 ## Support
 
-For issues or questions, create an issue in the repository or contact support at [your-email].
+For issues or questions:
+- Create an issue in the repository
+- Check existing issues for solutions
+- Review the documentation above
 
 ---
 
-Built with ❤️ using Next.js and Supabase
+**Built with ❤️ using Next.js, Supabase, and Google Gemini**
