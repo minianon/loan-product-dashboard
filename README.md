@@ -1,6 +1,52 @@
 # Loan Picks Dashboard
+<img width="1916" height="967" alt="image" src="https://github.com/user-attachments/assets/12f73b99-9621-433e-b75f-22e67850c25f" />
 
 A modern Next.js web application for exploring personalized loan products with an AI-powered chat assistant.
+
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture Diagram](#architecture-diagram)
+- [Setup Instructions](#setup-instructions)
+  - [Prerequisites](#prerequisites)
+  - [Clone the Repository](#step-1-clone-the-repository)
+  - [Install Dependencies](#step-2-install-dependencies)
+  - [Set Up Supabase](#step-3-set-up-supabase)
+  - [Get Google AI API Key](#step-4-get-google-ai-studio-api-key)
+  - [Configure Environment Variables](#step-5-configure-environment-variables)
+  - [Run Development Server](#step-6-run-the-development-server)
+  - [Deploy to Vercel](#step-7-deploy-to-vercel)
+- [Badge Logic](#badge-logic)
+  - [Badge Rules](#badge-rules)
+  - [Implementation](#implementation)
+- [AI Grounding Strategy](#ai-grounding-strategy)
+  - [Product Context Fetching](#1-product-context-fetching)
+  - [System Prompt Construction](#2-system-prompt-construction)
+  - [Message History Management](#3-message-history-management)
+  - [API Request Flow](#4-api-request-flow)
+  - [Google Gemini Integration](#5-google-gemini-integration)
+  - [Fail-Safe Mechanism](#6-fail-safe-mechanism)
+  - [Response Validation](#7-response-validation)
+- [Usage](#usage)
+  - [Dashboard](#dashboard)
+  - [All Products](#all-products)
+  - [AI Chat](#ai-chat)
+  - [Authentication](#authentication)
+- [API Routes](#api-routes)
+  - [GET /api/products](#get-apiproducts)
+  - [POST /api/ai/ask](#post-apiaisk)
+- [Data Model](#data-model)
+  - [Products Table](#products-table)
+  - [Users Table](#users-table)
+  - [AI Chat Messages Table](#ai-chat-messages-table)
+  - [RLS Policies](#rls-policies)
+- [Performance Optimizations](#performance-optimizations)
+- [Future Enhancements](#future-enhancements)
+- [Troubleshooting](#troubleshooting)
+- [Support](#support)
+- [Contact](#contact)
 
 ## Features
 
@@ -27,74 +73,74 @@ A modern Next.js web application for exploring personalized loan products with a
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Client Layer                             │
+│                         Client Layer                            │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  Dashboard   │  │ All Products │  │   AI Chat Drawer     │   │
-│  │  (Top 5)    │  │   (Filter)   │  │   (Product Context)  │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
-│         │                  │                     │                │
-│         └──────────────────┼─────────────────────┘                │
-│                            │                                      │
-│                    ┌───────▼────────┐                             │
-│                    │  Navigation    │                             │
-│                    └───────┬────────┘                             │
+│                                                                 │
+│  ┌──────────────┐   ┌──────────────┐  ┌──────────────────────┐  │
+│  │  Dashboard   │   │ All Products │  │   AI Chat Drawer     │  │
+│  │  (Top 5)     │   │   (Filter)   │  │   (Product Context)  │  │
+│  └──────┬───────┘   └──────┬───────┘  └──────────┬───────────┘  │
+│         │                  │                     │              │
+│         └──────────────────┼─────────────────────┘              │
+│                            │                                    │
+│                    ┌───────▼────────┐                           │
+│                    │  Navigation    │                           │
+│                    └───────┬────────┘                           │
 └────────────────────────────┼────────────────────────────────────┘
                              │
 ┌────────────────────────────▼────────────────────────────────────┐
-│                      Next.js App Router                          │
+│                      Next.js App Router                         │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌──────────────────┐         ┌──────────────────┐              │
-│  │  Server Pages    │         │   API Routes      │              │
-│  │  • / (Dashboard) │         │   • /api/products│              │
-│  │  • /products     │         │   • /api/ai/ask   │              │
-│  │  • /auth/*       │         └─────────┬─────────┘              │
-│  └──────────────────┘                 │                         │
-└────────────────────────────────────────┼─────────────────────────┘
+│                                                                 │
+│  ┌──────────────────┐        ┌───────────────────┐              │
+│  │  Server Pages    │        │   API Routes      │              │
+│  │  • / (Dashboard) │        │   • /api/products │              │
+│  │  • /products     │        │   • /api/ai/ask   │              │
+│  │  • /auth/*       │        └─────────┬─────────┘              │
+│  └──────────────────┘                  │                        │
+└────────────────────────────────────────┼────────────────────────┘
                                          │
-┌────────────────────────────────────────▼─────────────────────────┐
-│                      API Layer                                    │
+┌────────────────────────────────────────▼────────────────────────┐
+│                             API Layer                           │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  GET /api/products                                       │   │
-│  │  • Zod validation for query params                      │   │
-│  │  • Filters: bank, APR, income, credit score, type       │   │
-│  │  • Returns filtered product list                        │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  GET /api/products                                      │    │ 
+│  │  • Zod validation for query params                      │    │
+│  │  • Filters: bank, APR, income, credit score, type       │    │
+│  │  • Returns filtered product list                        │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  POST /api/ai/ask                                        │   │
 │  │  • Zod validation for request body                       │   │
-│  │  • Fetches product details from database                │   │
+│  │  • Fetches product details from database                 │   │
 │  │  • Builds system prompt with product context             │   │
-│  │  • Calls Google Gemini API with grounded data           │   │
+│  │  • Calls Google Gemini API with grounded data            │   │
 │  │  • Returns AI response                                   │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
                                          │
 ┌────────────────────────────────────────▼─────────────────────────┐
-│                    Data & External Services                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                   │
+│                    Data & External Services                      │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
 │  ┌──────────────────────┐      ┌──────────────────────┐          │
 │  │   Supabase/Postgres  │      │   Google Gemini AI   │          │
 │  │                      │      │                      │          │
-│  │  • products table    │      │  • gemini-2.5-flash │          │
+│  │  • products table    │      │  • gemini-2.5-flash  │          │
 │  │  • users table       │      │  • REST API v1       │          │
-│  │  • ai_chat_messages  │      │  • Product-grounded │          │
+│  │  • ai_chat_messages  │      │  • Product-grounded  │          │
 │  │  • RLS policies      │      │    responses         │          │
 │  └──────────────────────┘      └──────────────────────┘          │
-│                                                                   │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Authentication (Supabase Auth)                         │   │
-│  │  • JWT-based sessions                                    │   │
-│  │  • Email/password                                        │   │
-│  │  • Middleware protection                                 │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  Authentication (Supabase Auth)                          │    │
+│  │  • JWT-based sessions                                    │    │
+│  │  • Email/password                                        │    │
+│  │  • Middleware protection                                 │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
 
 Data Flow:
 1. User requests dashboard → Server fetches top 5 products from DB
@@ -562,6 +608,16 @@ For issues or questions:
 - Create an issue in the repository
 - Check existing issues for solutions
 - Review the documentation above
+
+
+## Contact
+
+- **Meet T-Bot** - [Discover My Work](https://t-bot-blush.vercel.app/)
+- **Tushar Bhardwaj** - [Portfolio](https://tushar-bhardwaj.vercel.app/)
+- **Connect 1:1** - [Topmate](https://topmate.io/tusharbhardwaj)
+- **GitHub:** [TuShArBhArDwA](https://github.com/TuShArBhArDwA)
+- **LinkedIn:** [Tushar Bhardwaj](https://www.linkedin.com/in/bhardwajtushar2004/)
+- **Email:** [tusharbhardwaj2617@example.com](mailto:tusharbhardwaj2617@example.com)
 
 ---
 
