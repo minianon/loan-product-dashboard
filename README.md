@@ -71,6 +71,8 @@ A modern Next.js web application for exploring personalized loan products with a
 
 ## Architecture Diagram
 
+<img width="1538" height="836" alt="supabase-schema-xjebhrdycmairluhojtn" src="https://github.com/user-attachments/assets/6b6bb354-b78a-4f6d-b6d4-2972bc39f762" />
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Client Layer                            │
@@ -150,6 +152,7 @@ Data Flow:
 5. API calls Google Gemini → Returns grounded response
 6. Response displayed in chat drawer
 ```
+
 
 ## Setup Instructions
 
