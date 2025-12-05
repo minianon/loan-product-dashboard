@@ -5,6 +5,7 @@ import type { LoanProduct } from "@/lib/types"
 import ProductCard from "@/components/dashboard/product-card"
 import Navigation from "@/components/dashboard/navigation"
 import ChatDrawer from "@/components/dashboard/chat-drawer"
+import Footer from "@/components/footer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
@@ -138,6 +139,9 @@ export default function ProductsPage({ allProducts }: ProductsPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Chat Drawer */}
       <ChatDrawer product={selectedProduct} isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} />

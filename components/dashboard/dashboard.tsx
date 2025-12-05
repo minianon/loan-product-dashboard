@@ -5,6 +5,7 @@ import type { LoanProduct } from "@/lib/types"
 import ProductCard from "./product-card"
 import Navigation from "./navigation"
 import ChatDrawer from "./chat-drawer"
+import Footer from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
 
 interface DashboardProps {
@@ -65,6 +66,9 @@ export default function Dashboard({ topProducts }: DashboardProps) {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Chat Drawer */}
       <ChatDrawer product={selectedProduct} isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} />
