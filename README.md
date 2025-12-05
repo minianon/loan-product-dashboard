@@ -25,7 +25,7 @@ A modern Next.js web application for exploring personalized loan products with a
 
 ## Architecture
 
-\`\`\`
+```
 ┌─────────────────────────────────────────────┐
 │          Next.js Frontend                   │
 ├─────────────────────────────────────────────┤
@@ -46,7 +46,7 @@ A modern Next.js web application for exploring personalized loan products with a
 ├─────────────────────────────────────────────┤
 │          Supabase (PostgreSQL + Auth)       │
 └─────────────────────────────────────────────┘
-\`\`\`
+```
 
 ## Badge Logic
 
@@ -71,7 +71,7 @@ The AI chat assistant uses a strict grounding approach:
 4. **Fail-Safe**: If a question is outside the product scope, the AI politely redirects the user
 
 Example AI Request:
-\`\`\`
+```
 POST /api/ai/ask
 {
   "productId": "uuid-here",
@@ -81,7 +81,7 @@ POST /api/ai/ask
     { "role": "assistant", "content": "..." }
   ]
 }
-\`\`\`
+```
 
 ## Setup Instructions
 
@@ -91,11 +91,11 @@ POST /api/ai/ask
 - OpenAI API key (for AI features)
 
 ### 1. Clone and Install
-\`\`\`bash
+```bash
 git clone <your-repo>
 cd loan-dashboard
 npm install
-\`\`\`
+```
 
 ### 2. Set Up Supabase
 1. Create a Supabase project at [supabase.com](https://supabase.com)
@@ -116,16 +116,16 @@ Set in your Vercel project:
 - `OPENAI_API_KEY` - For AI chat features
 
 ### 5. Run Locally
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 Visit `http://localhost:3000` to see the dashboard.
 
 ### 6. Deploy to Vercel
-\`\`\`bash
+```bash
 vercel deploy
-\`\`\`
+```
 
 ## Usage
 
@@ -157,7 +157,7 @@ vercel deploy
 ## Data Model
 
 ### Products Table
-\`\`\`sql
+```sql
 id (UUID) - Primary key
 name (TEXT) - Product name
 bank (TEXT) - Bank/lender name
@@ -173,7 +173,7 @@ disbursal_speed (TEXT) - 'fast' or 'standard'
 docs_level (TEXT) - 'minimal', 'standard', or 'detailed'
 summary (TEXT) - Product description
 faq (JSONB) - Array of {q, a} objects
-\`\`\`
+```
 
 ### RLS Policies
 - **Products**: Public read access (everyone can view)
