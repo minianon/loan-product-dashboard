@@ -6,6 +6,7 @@ A modern Next.js web application for exploring personalized loan products with a
 
 ## Table of Contents
 
+- [Demo Video](#demo-video)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Architecture Diagram](#architecture-diagram)
@@ -47,6 +48,9 @@ A modern Next.js web application for exploring personalized loan products with a
 - [Troubleshooting](#troubleshooting)
 - [Support](#support)
 - [Contact](#contact)
+
+## Demo Video
+See Live Demo - [Click Me!](https://www.loom.com/share/4ff163d6c6614201b2ab6dc428fe9ba9)
 
 ## Features
 
