@@ -111,6 +111,11 @@ function LoginForm() {
             Sign up
           </Link>
         </p>
+        <div className="mt-6 text-sm p-3 border rounded-md bg-slate-50 dark:bg-slate-900">
+          <p className="font-semibold mb-1 text-center">Demo Credentials</p>
+          <p><strong>Email:</strong> tusharbhardwaj2617@gmail.com</p>
+          <p><strong>Password:</strong> 123456</p>
+        </div>
       </CardContent>
     </Card>
   )
