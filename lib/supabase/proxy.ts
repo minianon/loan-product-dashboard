@@ -29,9 +29,26 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (request.nextUrl.pathname.startsWith("/protected") && !user) {
+  // Define public routes that don't require authentication
+  const publicRoutes = ["/auth/login", "/auth/signup", "/auth/verify-email"]
+  const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+
+  // Protect main routes - require authentication
+  if (!isPublicRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
+    // Store the original URL to redirect back after login
+    url.searchParams.set("redirect", request.nextUrl.pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect authenticated users away from auth pages
+  if (user && (request.nextUrl.pathname.startsWith("/auth/login") || request.nextUrl.pathname.startsWith("/auth/signup"))) {
+    const url = request.nextUrl.clone()
+    // Check if there's a redirect parameter
+    const redirectTo = url.searchParams.get("redirect") || "/"
+    url.pathname = redirectTo
+    url.searchParams.delete("redirect")
     return NextResponse.redirect(url)
   }
 

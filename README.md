@@ -54,7 +54,7 @@ A modern Next.js web application for exploring personalized loan products with a
 - **Dynamic Badges**: Smart badge system that highlights key product features (3-5 badges per product)
 - **Product Filtering**: Browse all loan products with filters for bank, APR range, minimum income, and credit score
 - **AI Chat Assistant**: Ask questions about any loan product with grounded, product-specific answers
-- **Secure Authentication**: Email/password authentication with Supabase
+- **Secure Authentication**: Email/password authentication with Supabase - all routes are protected and require login
 - **Responsive Design**: Fully responsive UI built with shadcn/ui and Tailwind CSS
 
 ## Tech Stack
@@ -140,7 +140,9 @@ A modern Next.js web application for exploring personalized loan products with a
 │  │  Authentication (Supabase Auth)                          │    │
 │  │  • JWT-based sessions                                    │    │
 │  │  • Email/password                                        │    │
-│  │  • Middleware protection                                 │    │
+│  │  • Session management via middleware                     │    │
+│  │  • All routes protected (require authentication)        │    │
+│  │  • Automatic redirect to login for unauthenticated users │    │
 │  └──────────────────────────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────────────────┘
 
@@ -426,10 +428,24 @@ If a question is outside the product scope:
 
 ### Authentication
 
-- **Sign Up**: Navigate to `/auth/signup`
-- **Sign In**: Navigate to `/auth/login`
-- **Email Verification**: Check your email for verification link
-- **Session Management**: Automatic via Supabase middleware
+**All routes are protected** - Users must be authenticated to access the dashboard, products page, or any other content.
+
+- **Protected Routes**: `/` (dashboard) and `/products` require authentication
+- **Public Routes**: `/auth/login`, `/auth/signup`, `/auth/verify-email` are accessible without login
+- **Auto-Redirect**: Unauthenticated users are automatically redirected to login page
+- **Post-Login Redirect**: After successful login, users are redirected back to the page they originally tried to access
+- **Sign Up**: Navigate to `/auth/signup` or click "Sign Up" in navigation
+- **Sign In**: Navigate to `/auth/login` or click "Sign In" in navigation (or automatically redirected)
+- **Sign Out**: Click "Sign Out" in navigation (visible when logged in)
+- **Email Verification**: Check your email for verification link after signup
+- **Session Management**: Automatic via Supabase middleware with JWT tokens
+- **Navigation**: Shows Sign In/Sign Up when logged out, Sign Out when logged in
+
+**Testing Authentication**:
+1. Open an incognito/private window
+2. Visit `http://localhost:3000/` or `http://localhost:3000/products`
+3. You should be automatically redirected to `/auth/login`
+4. After logging in, you'll be redirected back to the original page
 
 ## API Routes
 

@@ -21,6 +21,15 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false)
   const router = useRouter()
 
+  // Get redirect URL from query params
+  const getRedirectUrl = () => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      return params.get("redirect") || "/"
+    }
+    return "/"
+  }
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -44,7 +53,12 @@ export default function SignUpPage() {
         setError(signUpError.message)
       } else {
         setSuccess(true)
-        setTimeout(() => router.push("/auth/verify-email"), 2000)
+        // After successful signup, redirect to verify email or dashboard
+        const redirectTo = getRedirectUrl()
+        setTimeout(() => {
+          // If email verification is required, go to verify page, otherwise go to dashboard
+          router.push("/auth/verify-email")
+        }, 2000)
       }
     } catch (err) {
       setError("An unexpected error occurred")
