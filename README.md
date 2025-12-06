@@ -200,8 +200,9 @@ pnpm install
      - `https://v0-loan-product-dashboard-pi.vercel.app/auth/confirm`
      - `http://localhost:3000/auth/confirm` (for local development)
    - This ensures email verification links work in both development and production
+   - **Note**: Make sure your email templates use the correct placeholders. The confirmation email should include `{{ .ConfirmationURL }}` to generate valid verification links
 
-3. **Run Database Migrations**:
+4. **Run Database Migrations**:
    - In Supabase Dashboard, go to SQL Editor
    - Run `scripts/001_create_schema.sql` to create tables and RLS policies
    - Run `scripts/002_seed_products.sql` to seed 12 sample loan products
@@ -213,7 +214,7 @@ pnpm install
 3. Click "Create API Key"
 4. Copy the API key (starts with `AIza...`)
 
-### Step 5: Configure Environment Variables
+### Step 6: Configure Environment Variables
 
 Create a `.env.local` file in the root directory:
 
@@ -242,7 +243,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - For production deployment on Vercel, set `NEXT_PUBLIC_APP_URL` to your production URL in Vercel environment variables.
 - Make sure to configure Supabase redirect URLs (see Step 3 above).
 
-### Step 6: Run the Development Server
+### Step 7: Run the Development Server
 
 ```bash
 npm run dev

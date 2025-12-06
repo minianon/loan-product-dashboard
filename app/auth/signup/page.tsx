@@ -55,8 +55,8 @@ export default function SignUpPage() {
         // After successful signup, redirect to verify email or dashboard
         const redirectTo = getRedirectUrl()
         setTimeout(() => {
-          // If email verification is required, go to verify page, otherwise go to dashboard
-          router.push("/auth/verify-email")
+          // If email verification is required, go to verify page with email, otherwise go to dashboard
+          router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`)
         }, 2000)
       }
     } catch (err) {
