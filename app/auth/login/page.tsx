@@ -63,6 +63,20 @@ function LoginForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          
+          {searchParams.get("error") === "verification_failed" && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>Email verification failed. Please try again or request a new verification link.</AlertDescription>
+            </Alert>
+          )}
+          
+          {searchParams.get("error") === "invalid_token" && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>Invalid verification token. Please request a new verification link.</AlertDescription>
+            </Alert>
+          )}
 
           <div>
             <label className="text-sm font-medium mb-1 block">Email</label>

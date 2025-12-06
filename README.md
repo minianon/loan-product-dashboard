@@ -193,6 +193,14 @@ pnpm install
    - Go to Project Settings → Database
    - Copy your `Connection string` (optional, for direct PostgreSQL access)
 
+3. **Configure Authentication Redirect URLs** (Important for email verification):
+   - Go to Project Settings → Authentication → URL Configuration
+   - Set **Site URL** to your production URL: `https://v0-loan-product-dashboard-pi.vercel.app`
+   - Add to **Redirect URLs**:
+     - `https://v0-loan-product-dashboard-pi.vercel.app/auth/confirm`
+     - `http://localhost:3000/auth/confirm` (for local development)
+   - This ensures email verification links work in both development and production
+
 3. **Run Database Migrations**:
    - In Supabase Dashboard, go to SQL Editor
    - Run `scripts/001_create_schema.sql` to create tables and RLS policies
@@ -221,11 +229,18 @@ GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key_here
 # Optional: Direct PostgreSQL connection
 POSTGRES_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
 
-# Next.js
+# Next.js App URL (for email verification)
+# Local: http://localhost:3000
+# Production: https://v0-loan-product-dashboard-pi.vercel.app
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-**Important**: Never commit `.env.local` to version control. It's already in `.gitignore`.
+**Important**: 
+- Never commit `.env.local` to version control. It's already in `.gitignore`.
+- For production deployment on Vercel, set `NEXT_PUBLIC_APP_URL` to your production URL (`https://v0-loan-product-dashboard-pi.vercel.app`) in Vercel environment variables.
+- Make sure to configure Supabase redirect URLs in Step 3 above.
+- For production deployment on Vercel, set `NEXT_PUBLIC_APP_URL` to your production URL in Vercel environment variables.
+- Make sure to configure Supabase redirect URLs (see Step 3 above).
 
 ### Step 6: Run the Development Server
 
