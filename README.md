@@ -658,3 +658,11 @@ If my work helps you, you can support it on [GitHub Sponsors](https://github.com
 ---
 
 **Built with ❤️ using Next.js, Supabase, and Google Gemini**
+
+## Design docs
+
+| Doc | What's inside |
+|---|---|
+| [High-Level Design](docs/hld.md) | Architecture, components, data flow, tech choices, deployment |
+| [Low-Level Design](docs/lld.md) | Modules, data models, APIs and functions, key sequences |
+
