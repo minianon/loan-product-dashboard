@@ -66,6 +66,8 @@ Results are sorted by APR, lowest first. Params are validated with zod.
 | Zero Processing Fee | `processing_fee_pct = 0` |
 | Salary > ₹nL Eligible | `min_income ≤ 4,00,000` |
 
+At most 5 badges are shown per product.
+
 ## 4. Ask the AI
 
 ```mermaid
@@ -85,7 +87,7 @@ sequenceDiagram
     A->>G: POST /v1/models/{model}:generateContent
   end
   G-->>A: answer
-  A-->>D: { answer }
+  A-->>D: { message }
 ```
 
 The route tries each available model in turn until one succeeds, so the assistant keeps working if a model is retired.
